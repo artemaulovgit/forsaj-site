@@ -52,21 +52,26 @@ git config --global user.email "почта@из-github"
 
 ### Шаг 4. Залить сайт
 
+> **Важно:** локальный репозиторий уже создан — 45 файлов, первый коммит в ветке `main`.
+> `git init`, `git add` и `git commit` повторять **не нужно**, начинайте сразу с `git remote add`.
+
 **Вариант А — через командную строку (быстрее).**
 
 ```powershell
-cd "путь\к\папке\forsaj-site"
+cd "C:\Users\MSI\OneDrive\Документы\deepseek-harness\default-workspace\forsaj-site"
 
-git init
-git add .
-git commit -m "Сайт FORSAJ МК: главная, контакты, как проехать"
-git branch -M main
 git remote add origin https://github.com/ВАШ-ЛОГИН/forsaj-site.git
 git push -u origin main
 ```
 
-При `git push` откроется окно входа. Логин — ваш GitHub-username, пароль — **не пароль от аккаунта**,
-а Personal Access Token:
+При `git push` Git Credential Manager предложит войти. Порядок действий:
+
+1. В появившемся окне выберите **Sign in with your browser** (вход через браузер).
+2. Откроется браузер, войдите в свой аккаунт GitHub и нажмите **Authorize**.
+3. Вернитесь в PowerShell — пароль не нужен, токен Git сохранит сам.
+
+Если окно с браузером не появилось и просит логин/пароль — пароль от аккаунта не подойдёт,
+нужен **Personal Access Token**:
 
 1. GitHub → `Settings` → внизу `Developer settings` → `Personal access tokens` → `Tokens (classic)`.
 2. `Generate new token (classic)`, срок — 90 дней, галочка **`repo`**.
