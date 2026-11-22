@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /forsaj/
+Disallow: /forsaj_info/
+Disallow: /forsaj_map/
+
+Sitemap: https://forsaj-mk.ru/sitemap.xml

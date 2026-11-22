@@ -1,0 +1,9 @@
+# Единые переводы строк: в репозитории и на хостинге — LF.
+* text=auto eol=lf
+
+# Бинарные файлы не трогаем
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.woff2 binary
+*.ico binary
