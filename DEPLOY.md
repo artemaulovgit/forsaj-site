@@ -1,4 +1,4 @@
-# Публикация сайта: с нуля до рабочего домена
+﻿# Публикация сайта: с нуля до рабочего домена
 
 Инструкция рассчитана на то, что вы никогда не работали с Git и GitHub.
 Делайте по порядку — каждый шаг проверяемый.
@@ -48,7 +48,7 @@ git config --global user.email "почта@из-github"
 2. Имя: `forsaj-site`.
 3. Видимость: **Private** (сайт всё равно увидят все — репозиторий с кодом видят только вы).
 4. Не ставьте галочки «Add README», «Add .gitignore» — репозиторий должен быть пустым.
-5. **Create repository**. GitHub покажет адрес вида `https://github.com/ВАШ-ЛОГИН/forsaj-site.git`.
+5. **Create repository**. GitHub покажет адрес вида `https://github.com/artemaulovgit/forsaj-site.git`.
 
 ### Шаг 4. Залить сайт
 
@@ -60,7 +60,7 @@ git config --global user.email "почта@из-github"
 ```powershell
 cd "C:\Users\MSI\OneDrive\Документы\deepseek-harness\default-workspace\forsaj-site"
 
-git remote add origin https://github.com/ВАШ-ЛОГИН/forsaj-site.git
+git remote add origin https://github.com/artemaulovgit/forsaj-site.git
 git push -u origin main
 ```
 
