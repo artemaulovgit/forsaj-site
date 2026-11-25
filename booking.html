@@ -288,6 +288,11 @@
 <footer class="bk-foot">
   <b>FORSAJ МК</b> · мультибрендовый автоцентр<br>
   Москва, Берёзовая аллея, 4 · ежедневно <span id="footHours">10:00–22:00</span>
+  <div style="margin-top:14px">
+    <a href="#" id="adminLink" style="color:#5a5a6b;font-size:12px;text-decoration:none;border-bottom:1px dotted #3a3a48">
+      Вход для мастера
+    </a>
+  </div>
 </footer>
 
 <script>
@@ -742,6 +747,12 @@ var API_BASE = (function () {
   });
 
   loadInfo();
+
+  // ссылка в кабинет ведёт на домен сервера — иначе браузер не сохранит сессию
+  (function () {
+    var link = $('adminLink');
+    if (link) link.href = API_BASE + '/admin';
+  })();
 })();
 </script>
 </body>
