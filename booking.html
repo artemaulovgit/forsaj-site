@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Запись в сервис — FORSAJ МК, Берёзовая аллея, 4</title>
+<meta name="description" content="Онлайн-запись в автосервис FORSAJ МК: диагностика, ТО, кузовной ремонт, покраска. Подтвердим время и стоимость.">
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<style>
+  :root{
+    --bg:#070709; --bg-soft:#0b0b10; --card:#101017;
+    --line:rgba(255,255,255,.08); --line-strong:rgba(255,255,255,.16);
+    --red:#ff003c; --red-bright:#ff1a4d; --red-soft:rgba(255,0,60,.12);
+    --green:#00e676;
+    --text:#fff; --muted:#9a9ab0; --muted-strong:#c3c3d4;
+    --font-head:'Unbounded','Montserrat',system-ui,sans-serif;
+    --font-body:'Montserrat',system-ui,-apple-system,'Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--text);
+    font-family:var(--font-body); font-size:15px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(900px 500px at 50% -10%, rgba(255,0,60,.10), transparent 60%);
+    min-height:100vh;
+  }
+  a{color:inherit}
+
+  .bk-head{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    max-width:1120px; margin:0 auto; padding:20px 20px 0;
+  }
+  .bk-logo{font-family:var(--font-head); font-weight:700; font-size:18px; letter-spacing:.06em; text-decoration:none}
+  .bk-logo span{color:var(--red)}
+  .bk-phone{font-weight:600; font-size:15px; text-decoration:none; white-space:nowrap}
+  .bk-phone:hover{color:var(--red-bright)}
+
+  .bk-wrap{max-width:600px; margin:0 auto; padding:28px 20px 60px}
+  .bk-card{
+    background:var(--card); border:1px solid var(--line);
+    border-radius:24px; padding:26px;
+    box-shadow:0 30px 80px rgba(0,0,0,.55);
+  }
+  .bk-kicker{
+    display:inline-block; font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--red); border:1px solid rgba(255,0,60,.35); background:var(--red-soft);
+    padding:6px 12px; border-radius:999px; margin-bottom:16px;
+  }
+  h1{font-family:var(--font-head); font-size:26px; line-height:1.2; margin:0 0 10px; font-weight:700}
+  .bk-sub{color:var(--muted); font-size:14px; margin:0 0 24px; line-height:1.55}
+
+  .bk-field{margin-bottom:18px}
+  .bk-field > label{display:block; font-size:13px; font-weight:600; color:var(--muted-strong); margin-bottom:8px}
+  .bk-hint{font-size:12px; color:var(--muted); margin-top:6px}
+
+  input[type=text],input[type=tel],select,textarea{
+    width:100%; font:inherit; font-size:16px; color:var(--text);
+    background:var(--bg-soft); border:1px solid var(--line);
+    border-radius:14px; padding:14px 16px; outline:none;
+    transition:border-color .18s, box-shadow .18s;
+    -webkit-appearance:none; appearance:none;
+  }
+  input::placeholder,textarea::placeholder{color:#5f5f70}
+  input:focus,select:focus,textarea:focus{
+    border-color:rgba(255,0,60,.6);
+    box-shadow:0 0 0 4px rgba(255,0,60,.12);
+  }
+  select{
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9' fill='none'><path d='M1 1l6 6 6-6' stroke='%239a9ab0' stroke-width='2' stroke-linecap='round'/></svg>");
+    background-repeat:no-repeat; background-position:right 18px center; padding-right:44px;
+  }
+  textarea{min-height:96px; resize:vertical}
+
+  .bk-row{display:flex; gap:12px}
+  .bk-row > *{flex:1; min-width:0}
+
+  .bk-chips{display:flex; flex-wrap:wrap; gap:8px}
+  .bk-chip{
+    border:1px solid var(--line-strong); background:transparent; color:var(--muted-strong);
+    border-radius:999px; padding:10px 16px; font:inherit; font-size:14px;
+    cursor:pointer; transition:all .16s;
+  }
+  .bk-chip:hover{border-color:rgba(255,255,255,.35); color:#fff}
+  .bk-chip.is-on{background:var(--red); border-color:var(--red); color:#fff; font-weight:600}
+
+  .bk-btn{
+    display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
+    border:0; border-radius:14px; padding:17px 20px;
+    font:inherit; font-size:16px; font-weight:700; letter-spacing:.01em;
+    cursor:pointer; background:var(--red); color:#fff;
+    box-shadow:0 10px 30px rgba(255,0,60,.25);
+    transition:background .16s, transform .16s, box-shadow .16s;
+  }
+  .bk-btn:hover{background:var(--red-bright); box-shadow:0 14px 38px rgba(255,0,60,.35)}
+  .bk-btn:active{transform:translateY(1px)}
+  .bk-btn:disabled{background:#2a2a35; color:#6b6b7d; box-shadow:none; cursor:not-allowed}
+  .bk-btn--ghost{
+    background:transparent; color:var(--text); border:1px solid var(--line-strong);
+    box-shadow:none; font-weight:600;
+  }
+  .bk-btn--ghost:hover{background:rgba(255,255,255,.05); box-shadow:none}
+
+  .bk-notice{
+    border-radius:14px; padding:14px 16px; font-size:14px; line-height:1.45; margin-bottom:18px;
+    border:1px solid rgba(255,0,60,.35); background:var(--red-soft); color:#ffb3c4;
+  }
+  .bk-notice--ok{border-color:rgba(0,230,118,.3); background:rgba(0,230,118,.1); color:#8ff0c0}
+
+  .bk-badge{
+    display:inline-block; padding:7px 14px; border-radius:999px; font-size:13px; font-weight:600;
+    background:rgba(0,230,118,.12); color:var(--green); border:1px solid rgba(0,230,118,.3);
+    margin-bottom:16px;
+  }
+  .bk-kv{display:flex; justify-content:space-between; gap:16px; padding:13px 0; border-top:1px solid var(--line); font-size:14px}
+  .bk-kv:first-of-type{border-top:0}
+  .bk-kv span:first-child{color:var(--muted)}
+  .bk-kv span:last-child{text-align:right; font-weight:600}
+
+  .bk-foot{max-width:600px; margin:0 auto; padding:0 20px 50px; color:var(--muted); font-size:13px; line-height:1.7}
+  .bk-foot b{color:var(--muted-strong)}
+  .bk-hidden{display:none !important}
+
+  @media (max-width:520px){
+    .bk-card{padding:20px; border-radius:20px}
+    h1{font-size:22px}
+    .bk-head{padding:16px 16px 0}
+    .bk-wrap{padding:20px 16px 48px}
+    .bk-phone{font-size:14px}
+  }
+</style>
+</head>
+<body>
+
+<header class="bk-head">
+  <a class="bk-logo" href="index.html">FORSAJ <span>МК</span></a>
+  <a class="bk-phone" href="tel:+79773787324">+7 977 378-73-24</a>
+</header>
+
+<main class="bk-wrap">
+
+  <!-- ФОРМА -->
+  <div class="bk-card" id="formView">
+    <div class="bk-kicker">Онлайн-запись</div>
+    <h1>Записаться в сервис</h1>
+    <p class="bk-sub">Опишите задачу — подберём время, назовём цену и сроки. Отвечаем в течение 15 минут в рабочее время.</p>
+
+    <div class="bk-notice bk-hidden" id="error"></div>
+
+    <form id="form" novalidate>
+      <div class="bk-field">
+        <label for="service">Что нужно сделать?</label>
+        <select id="service">
+          <option value="">Не знаю — нужна консультация</option>
+        </select>
+        <div class="bk-hint" id="serviceHint"></div>
+      </div>
+
+      <div class="bk-field">
+        <label for="comment">Опишите проблему</label>
+        <textarea id="comment" placeholder="Например: стучит справа на кочках, появилось после зимы"></textarea>
+        <div class="bk-hint">Чем подробнее — тем точнее срок и цена</div>
+      </div>
+
+      <div class="bk-field">
+        <label for="make">Автомобиль</label>
+        <div class="bk-row">
+          <input type="text" id="make" placeholder="Марка" autocomplete="off">
+          <input type="text" id="model" placeholder="Модель" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="bk-field">
+        <label>Когда удобно?</label>
+        <div class="bk-chips" id="chips">
+          <button type="button" class="bk-chip is-on" data-when="asap">Скорее</button>
+          <button type="button" class="bk-chip" data-when="today">Сегодня</button>
+          <button type="button" class="bk-chip" data-when="tomorrow">Завтра</button>
+          <button type="button" class="bk-chip" data-when="week">На неделе</button>
+          <button type="button" class="bk-chip" data-when="date">Выбрать дату</button>
+        </div>
+        <div class="bk-hidden" id="dateWrap" style="margin-top:12px">
+          <input type="date" id="date" style="width:100%;font:inherit;font-size:16px;color:#fff;background:var(--bg-soft);border:1px solid var(--line);border-radius:14px;padding:14px 16px;outline:none">
+        </div>
+      </div>
+
+      <div class="bk-field">
+        <label for="name">Ваше имя</label>
+        <input type="text" id="name" placeholder="Как к вам обращаться" autocomplete="name">
+      </div>
+
+      <div class="bk-field">
+        <label for="phone">Телефон</label>
+        <input type="tel" id="phone" placeholder="+7 900 000-00-00" autocomplete="tel" inputmode="tel">
+        <div class="bk-hint">Позвоним только по этой заявке</div>
+      </div>
+
+      <button class="bk-btn" type="submit" id="submitBtn">Отправить заявку</button>
+
+      <div class="bk-hint" style="text-align:center;margin-top:14px">
+        Нажимая кнопку, вы соглашаетесь на обработку персональных данных
+      </div>
+    </form>
+  </div>
+
+  <!-- ГОТОВО -->
+  <div class="bk-card bk-hidden" id="doneView">
+    <div class="bk-badge">Заявка принята</div>
+    <h1 style="font-size:22px">Спасибо, мы получили заявку</h1>
+    <p class="bk-sub">Свяжемся с вами, чтобы подтвердить время и стоимость.</p>
+    <div class="bk-kv"><span>Номер</span><span id="doneId">—</span></div>
+    <div class="bk-kv"><span>Услуга</span><span id="doneService">—</span></div>
+    <div class="bk-kv"><span>Когда</span><span id="doneWhen">—</span></div>
+    <div style="margin-top:20px">
+      <a class="bk-btn bk-btn--ghost" id="statusLink" href="#">Посмотреть статус заявки</a>
+    </div>
+  </div>
+
+  <!-- ОШИБКА ЗАГРУЗКИ -->
+  <div class="bk-card bk-hidden" id="failView">
+    <div class="bk-badge" style="background:rgba(255,0,60,.12);color:#ff8fa8;border-color:rgba(255,0,60,.3)">Форма недоступна</div>
+    <h1 style="font-size:22px">Не удалось загрузить запись</h1>
+    <p class="bk-sub">Позвоните — запишем вручную за пару минут.</p>
+    <a class="bk-btn" href="tel:+79773787324">Позвонить +7 977 378-73-24</a>
+  </div>
+
+</main>
+
+<footer class="bk-foot">
+  <b>FORSAJ МК</b> · мультибрендовый автоцентр<br>
+  Москва, Берёзовая аллея, 4 · ежедневно 10:00–22:00
+</footer>
+
+<script>
+/* ============================================================
+   АДРЕС СЕРВЕРА ЗАПИСИ.
+
+   1) Локальный предпросмотр (http://localhost:3000/booking.html) —
+      оставь как есть, адрес определится сам.
+
+   2) Публичный сайт (github.io или forsajmk.ru) — браузер не пустит
+      запрос на http://localhost. Нужен публичный HTTPS-адрес сервера:
+      вставь его ниже, в строку PUBLIC_API.
+
+      Пример такого адреса: https://booking.forsajmk.ru
+   ============================================================ */
+var PUBLIC_API = 'https://ВСТАВЬ-АДРЕС-СЕРВЕРА';
+
+var API_BASE = (function () {
+  var h = location.hostname;
+  var local = (h === 'localhost' || h === '127.0.0.1');
+  if (local && location.port === '3000') return '';          // страница отдаётся тем же сервером
+  if (local) return 'http://localhost:3000';                 // открыли файл с диска
+  return PUBLIC_API;                                          // публичный сайт
+})();
+
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var WHEN = 'asap';
+  var SERVICES = [];
+
+  function show(el) { el.classList.remove('bk-hidden'); }
+  function hide(el) { el.classList.add('bk-hidden'); }
+
+  function showError(msg) {
+    var el = $('error');
+    el.textContent = msg;
+    show(el);
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function fmtDuration(min) {
+    if (min < 60) return min + ' мин';
+    var h = Math.round((min / 60) * 10) / 10;
+    return h + ' ч';
+  }
+
+  function updateHint() {
+    var s = SERVICES.filter(function (x) { return x.id === $('service').value; })[0];
+    var hint = $('serviceHint');
+    if (!s) { hint.textContent = ''; return; }
+    var parts = [];
+    if (s.duration_min) parts.push('≈' + fmtDuration(s.duration_min));
+    parts.push(s.price_from ? 'от ' + s.price_from.toLocaleString('ru-RU') + ' ₽' : 'цена после диагностики');
+    hint.textContent = parts.join(' · ');
+  }
+
+  function loadInfo() {
+    fetch(API_BASE + '/api/public/info', { cache: 'no-store' })
+      .then(function (r) { if (!r.ok) throw new Error('bad'); return r.json(); })
+      .then(function (data) {
+        SERVICES = data.services || [];
+        var select = $('service');
+        var groups = {};
+        var order = [];
+        SERVICES.forEach(function (s) {
+          var c = s.category || 'Прочее';
+          if (!groups[c]) { groups[c] = []; order.push(c); }
+          groups[c].push(s);
+        });
+        order.forEach(function (c) {
+          var og = document.createElement('optgroup');
+          og.label = c;
+          groups[c].forEach(function (s) {
+            var opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.title + (s.price_from ? ' — от ' + s.price_from.toLocaleString('ru-RU') + ' ₽' : '');
+            og.appendChild(opt);
+          });
+          select.appendChild(og);
+        });
+        updateHint();
+      })
+      .catch(function () {
+        hide($('formView'));
+        show($('failView'));
+      });
+  }
+
+  $('chips').addEventListener('click', function (e) {
+    var chip = e.target.closest('.bk-chip');
+    if (!chip) return;
+    var all = $('chips').querySelectorAll('.bk-chip');
+    for (var i = 0; i < all.length; i++) all[i].classList.remove('is-on');
+    chip.classList.add('is-on');
+    WHEN = chip.dataset.when;
+    $('dateWrap').classList.toggle('bk-hidden', WHEN !== 'date');
+  });
+
+  $('service').addEventListener('change', updateHint);
+
+  function whenHuman(when, date) {
+    if (when === 'today') return 'сегодня';
+    if (when === 'tomorrow') return 'завтра';
+    if (when === 'week') return 'на этой неделе';
+    if (when === 'date' && date) {
+      var p = date.split('-');
+      return p[2] + '.' + p[1] + '.' + p[0];
+    }
+    return 'как можно скорее';
+  }
+
+  $('form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    hide($('error'));
+
+    var name = $('name').value.trim();
+    var phone = $('phone').value.trim();
+    var date = $('date').value;
+
+    if (!name) return showError('Укажите, как к вам обращаться.');
+    if (!phone) return showError('Укажите телефон — без него не сможем подтвердить запись.');
+    if (WHEN === 'date' && !date) return showError('Выберите дату.');
+
+    var btn = $('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Отправляем…';
+
+    fetch(API_BASE + '/api/public/requests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: name,
+        phone: phone,
+        service_id: $('service').value || null,
+        comment: $('comment').value.trim(),
+        make: $('make').value.trim(),
+        model: $('model').value.trim(),
+        when: WHEN,
+        date: date || null
+      })
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        if (!res.ok) throw new Error(res.d.error || 'Не удалось отправить заявку');
+
+        $('doneId').textContent = '#' + res.d.id.slice(0, 8).toUpperCase();
+        var sel = $('service');
+        $('doneService').textContent = sel.value ? sel.options[sel.selectedIndex].text : 'Консультация';
+        $('doneWhen').textContent = whenHuman(WHEN, date);
+        $('statusLink').href = API_BASE + '/t/' + res.d.token;
+
+        hide($('formView'));
+        show($('doneView'));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      })
+      .catch(function (err) {
+        showError(err.message || 'Не удалось отправить заявку. Позвоните нам.');
+        btn.disabled = false;
+        btn.textContent = 'Отправить заявку';
+      });
+  });
+
+  loadInfo();
+})();
+</script>
+</body>
+</html>
