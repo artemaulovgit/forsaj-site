@@ -79,13 +79,36 @@
   .bk-chips{display:flex; flex-wrap:wrap; gap:8px}
   .bk-chip{
     border:1px solid var(--line-strong); background:transparent; color:var(--muted-strong);
-    border-radius:999px; padding:0 16px; min-height:46px; font:inherit; font-size:14px;
-    display:inline-flex; align-items:center; justify-content:center;
+    border-radius:999px; padding:0 18px; min-height:48px; font:inherit; font-size:14px;
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
     cursor:pointer; transition:all .16s;
   }
   .bk-chip:hover{border-color:rgba(255,255,255,.35); color:#fff}
   .bk-chip.is-on{background:var(--red); border-color:var(--red); color:#fff; font-weight:600}
   .bk-chip:disabled{opacity:.35; cursor:not-allowed}
+
+  /* ---------- лента дней ---------- */
+  .bk-days{
+    display:flex; gap:8px; overflow-x:auto; padding:2px 2px 8px;
+    scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x proximity;
+  }
+  .bk-days::-webkit-scrollbar{display:none}
+  .bk-day{
+    flex:0 0 auto; min-width:78px; padding:10px 12px; border-radius:16px;
+    border:1px solid var(--line-strong); background:var(--bg-soft); color:var(--muted-strong);
+    font:inherit; cursor:pointer; text-align:center; line-height:1.15;
+    transition:all .16s; scroll-snap-align:start;
+  }
+  .bk-day b{display:block; font-size:17px; font-weight:700; color:#fff; letter-spacing:.01em}
+  .bk-day small{display:block; font-size:11px; color:var(--muted); margin-top:3px; white-space:nowrap}
+  .bk-day:hover{border-color:rgba(255,255,255,.35)}
+  .bk-day.is-on{
+    background:var(--red); border-color:var(--red);
+    box-shadow:0 8px 24px rgba(255,0,60,.32);
+  }
+  .bk-day.is-on small{color:rgba(255,255,255,.85)}
+  .bk-day:disabled{opacity:.28; cursor:not-allowed; background:transparent}
 
   .bk-btn{
     display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
@@ -142,7 +165,9 @@
     .bk-field{margin-bottom:14px}
     .bk-row{gap:10px}
     input,select,textarea{min-height:50px; padding:13px 15px}
-    .bk-chip{min-height:44px; padding:0 14px; font-size:13.5px}
+    .bk-chip{min-height:46px; padding:0 15px; font-size:13.5px}
+    .bk-day{min-width:72px; padding:9px 10px}
+    .bk-day b{font-size:16px}
     .bk-btn{min-height:54px; font-size:15.5px}
     .bk-kicker{margin-bottom:12px}
     .bk-kv{font-size:13.5px}
@@ -204,19 +229,15 @@
       <div class="bk-field">
         <label>Когда удобно?</label>
         <div class="bk-chips" id="chips">
-          <button type="button" class="bk-chip is-on" data-when="asap">Скорее</button>
-          <button type="button" class="bk-chip" data-when="today" id="chipToday">Сегодня</button>
-          <button type="button" class="bk-chip" data-when="tomorrow">Завтра</button>
-          <button type="button" class="bk-chip" data-when="date">Выбрать дату</button>
+          <button type="button" class="bk-chip is-on" data-when="asap">Скорее, как получится</button>
+          <button type="button" class="bk-chip" data-when="date">Выбрать день</button>
         </div>
 
-        <div class="bk-hidden" id="dateWrap" style="margin-top:12px">
-          <div class="bk-row">
-            <input type="date" id="date" aria-label="Дата">
-            <select id="time" aria-label="Время" disabled>
-              <option value="">Время</option>
-            </select>
-          </div>
+        <div class="bk-hidden" id="dateWrap" style="margin-top:14px">
+          <div class="bk-days" id="days"></div>
+          <select id="time" aria-label="Время" disabled>
+            <option value="">Сначала выберите день</option>
+          </select>
           <div class="bk-hint" id="whenHint"></div>
         </div>
       </div>
@@ -228,7 +249,7 @@
 
       <div class="bk-field">
         <label for="phone">Телефон</label>
-        <input type="tel" id="phone" placeholder="+7 900 000-00-00" autocomplete="tel" inputmode="tel">
+        <input type="tel" id="phone" placeholder="+7 (900) 000-00-00" autocomplete="tel" inputmode="tel">
         <div class="bk-hint">Позвоним только по этой заявке</div>
       </div>
 
@@ -290,10 +311,15 @@ var API_BASE = (function () {
 
   var $ = function (id) { return document.getElementById(id); };
   var WHEN = 'asap';
+  var SELECTED_DATE = null;
   var SERVICES = [];
   var WORK = { opens: '10:00', closes: '22:00' };
-  var LEAD_MIN = 60;   // запись не раньше чем через час
-  var STEP = 30;       // шаг сетки времени
+  var LEAD_MIN = 60;
+  var STEP = 30;
+  var DAYS_AHEAD = 14;
+
+  var MONTHS = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  var WEEKDAYS = ['вс','пн','вт','ср','чт','пт','сб'];
 
   /* ---------------- марки и модели ---------------- */
   var CARS = {
@@ -371,9 +397,15 @@ var API_BASE = (function () {
   };
   var OTHER = '__other';
 
+  /* ---------------- утилиты ---------------- */
   function pad(n) { return String(n).padStart(2, '0'); }
   function todayStr() {
     var d = new Date();
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function shiftDate(iso, days) {
+    var p = iso.split('-');
+    var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]) + days);
     return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
   }
   function toMin(hhmm) {
@@ -381,6 +413,8 @@ var API_BASE = (function () {
     return Number(p[0]) * 60 + Number(p[1]);
   }
   function fromMin(m) { return pad(Math.floor(m / 60)) + ':' + pad(m % 60); }
+  function nowMin() { var d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
+  function lastSlotMin() { return toMin(WORK.closes) - STEP; }
 
   function show(el) { el.classList.remove('bk-hidden'); }
   function hide(el) { el.classList.add('bk-hidden'); }
@@ -396,6 +430,98 @@ var API_BASE = (function () {
     if (min < 60) return min + ' мин';
     var h = Math.round((min / 60) * 10) / 10;
     return h + ' ч';
+  }
+
+  /* ---------------- дата и время ---------------- */
+  function hasSlotsOn(iso) {
+    if (iso > todayStr()) return true;
+    return nowMin() + LEAD_MIN <= lastSlotMin();
+  }
+
+  function dayChipHtml(iso) {
+    var p = iso.split('-').map(Number);
+    var d = new Date(p[0], p[1] - 1, p[2]);
+    var label;
+    if (iso === todayStr()) label = 'сегодня';
+    else if (iso === shiftDate(todayStr(), 1)) label = 'завтра';
+    else label = MONTHS[p[1] - 1] + ', ' + WEEKDAYS[d.getDay()];
+    return { big: p[2], small: label };
+  }
+
+  function buildDays() {
+    var box = $('days');
+    box.innerHTML = '';
+    SELECTED_DATE = null;
+
+    for (var i = 0; i < DAYS_AHEAD; i++) {
+      var iso = shiftDate(todayStr(), i);
+      var ok = hasSlotsOn(iso);
+      var chip = dayChipHtml(iso);
+
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'bk-day';
+      btn.dataset.date = iso;
+      btn.disabled = !ok;
+      btn.innerHTML = '<b>' + chip.big + '</b><small>' + chip.small + '</small>';
+
+      if (ok && !SELECTED_DATE) {
+        btn.classList.add('is-on');
+        SELECTED_DATE = iso;
+      }
+
+      btn.addEventListener('click', onDayClick);
+      box.appendChild(btn);
+    }
+
+    if (SELECTED_DATE) {
+      buildTimes(SELECTED_DATE);
+      var act = box.querySelector('.bk-day.is-on');
+      if (act) act.scrollIntoView({ block: 'nearest', inline: 'center' });
+    } else {
+      $('time').innerHTML = '<option value="">Нет свободных дней</option>';
+      $('time').disabled = true;
+      $('whenHint').textContent = 'Позвоните — подберём время вручную.';
+    }
+  }
+
+  function onDayClick(e) {
+    var btn = e.currentTarget;
+    if (btn.disabled) return;
+    var all = $('days').querySelectorAll('.bk-day');
+    for (var i = 0; i < all.length; i++) all[i].classList.remove('is-on');
+    btn.classList.add('is-on');
+    SELECTED_DATE = btn.dataset.date;
+    buildTimes(SELECTED_DATE);
+  }
+
+  function buildTimes(iso) {
+    var sel = $('time');
+    sel.innerHTML = '';
+
+    var isToday = iso === todayStr();
+    var earliest = isToday ? nowMin() + LEAD_MIN : -1;
+    var count = 0;
+
+    for (var t = toMin(WORK.opens); t <= lastSlotMin(); t += STEP) {
+      if (t < earliest) continue;
+      var o = document.createElement('option');
+      o.value = fromMin(t);
+      o.textContent = fromMin(t);
+      sel.appendChild(o);
+      count++;
+    }
+
+    if (!count) {
+      sel.innerHTML = '<option value="">Нет времени</option>';
+      sel.disabled = true;
+      $('whenHint').textContent = 'На этот день мест не осталось. Выберите другой.';
+      return;
+    }
+
+    sel.disabled = false;
+    $('whenHint').textContent = 'Мы работаем ' + WORK.opens + '–' + WORK.closes +
+      '. Запись возможна не раньше чем за час.';
   }
 
   /* ---------------- марки ---------------- */
@@ -439,53 +565,23 @@ var API_BASE = (function () {
     modelSel.disabled = false;
   }
 
-  /* ---------------- время ---------------- */
-  function buildTimes(dateStr) {
-    var sel = $('time');
-    sel.innerHTML = '';
+  /* ---------------- телефон ---------------- */
+  function formatPhone(value) {
+    var d = String(value).replace(/\D/g, '');
+    if (!d) return '';
+    if (d.charAt(0) === '8') d = '7' + d.slice(1);
+    if (d.charAt(0) !== '7') d = '7' + d;
+    d = d.slice(0, 11);
 
-    if (!dateStr) {
-      sel.disabled = true;
-      return;
-    }
-
-    var start = toMin(WORK.opens);
-    var end = toMin(WORK.closes);
-    var isToday = dateStr === todayStr();
-    var now = new Date();
-    var nowMin = now.getHours() * 60 + now.getMinutes();
-    var earliest = isToday ? nowMin + LEAD_MIN : -1;
-
-    var count = 0;
-    for (var t = start; t < end; t += STEP) {
-      if (t < earliest) continue;
-      var o = document.createElement('option');
-      o.value = fromMin(t);
-      o.textContent = fromMin(t);
-      sel.appendChild(o);
-      count++;
-    }
-
-    if (!count) {
-      sel.innerHTML = '<option value="">Нет времени</option>';
-      sel.disabled = true;
-      $('whenHint').textContent = isToday
-        ? 'На сегодня мест больше нет. Выберите другой день.'
-        : 'На эту дату записи недоступны.';
-      return;
-    }
-
-    sel.disabled = false;
-    $('whenHint').textContent = 'Мы работаем ' + WORK.opens + '–' + WORK.closes +
-      '. Запись возможна не раньше чем за час.';
+    var out = '+7';
+    if (d.length > 1) out += ' (' + d.slice(1, 4);
+    if (d.length >= 5) out += ') ' + d.slice(4, 7);
+    if (d.length >= 8) out += '-' + d.slice(7, 9);
+    if (d.length >= 10) out += '-' + d.slice(9, 11);
+    return out;
   }
 
-  function refreshTodayChip() {
-    var nowMin = new Date().getHours() * 60 + new Date().getMinutes();
-    var lastSlot = toMin(WORK.closes) - STEP;
-    var available = (nowMin + LEAD_MIN) <= lastSlot;
-    $('chipToday').disabled = !available;
-  }
+  function digitsCount(v) { return String(v).replace(/\D/g, '').length; }
 
   /* ---------------- данные с сервера ---------------- */
   function loadInfo() {
@@ -520,10 +616,6 @@ var API_BASE = (function () {
 
         buildMakes();
         syncModels();
-        refreshTodayChip();
-
-        $('date').min = todayStr();
-        $('whenHint').textContent = 'Мы работаем ' + WORK.opens + '–' + WORK.closes + '.';
         updateHint();
       })
       .catch(function () {
@@ -555,20 +647,25 @@ var API_BASE = (function () {
     var byDate = (WHEN === 'date');
     $('dateWrap').classList.toggle('bk-hidden', !byDate);
     if (byDate) {
-      if (!$('date').value) {
-        $('date').value = todayStr();
-      }
-      buildTimes($('date').value);
+      if (!SELECTED_DATE) buildDays();
       $('time').focus();
     }
   });
 
-  $('date').addEventListener('change', function () {
-    buildTimes(this.value);
-  });
-
   $('make').addEventListener('change', syncModels);
   $('service').addEventListener('change', updateHint);
+
+  $('phone').addEventListener('input', function () {
+    var before = this.value;
+    var digitsBefore = digitsCount(before);
+    var formatted = formatPhone(before);
+
+    // не даём маске «дописывать» цифры, когда пользователь стирает
+    if (formatted !== before && digitsCount(formatted) >= digitsBefore) {
+      this.value = formatted;
+      try { this.setSelectionRange(formatted.length, formatted.length); } catch (err) {}
+    }
+  });
 
   function whenHuman(when, date, time) {
     if (when === 'today') return 'сегодня';
@@ -586,14 +683,13 @@ var API_BASE = (function () {
 
     var name = $('name').value.trim();
     var phone = $('phone').value.trim();
-    var date = $('date').value;
     var time = $('time').value;
 
     if (!name) return showError('Укажите, как к вам обращаться.');
-    if (!phone) return showError('Укажите телефон — без него не сможем подтвердить запись.');
+    if (digitsCount(phone) < 11) return showError('Телефон нужен полностью — 11 цифр, начиная с +7.');
     if (WHEN === 'date') {
-      if (!date) return showError('Выберите дату.');
-      if (!time) return showError('Выберите время — или нажмите «Скорее», если готовы на любой свободный слот.');
+      if (!SELECTED_DATE) return showError('Выберите день.');
+      if (!time) return showError('Выберите время — или нажмите «Скорее», если готовы на любой слот.');
     }
 
     var make, model;
@@ -620,7 +716,7 @@ var API_BASE = (function () {
         make: make,
         model: model,
         when: WHEN,
-        date: WHEN === 'date' ? date : null,
+        date: WHEN === 'date' ? SELECTED_DATE : null,
         time: WHEN === 'date' ? time : null
       })
     })
@@ -631,7 +727,7 @@ var API_BASE = (function () {
         $('doneId').textContent = '#' + res.d.id.slice(0, 8).toUpperCase();
         var sel = $('service');
         $('doneService').textContent = sel.value ? sel.options[sel.selectedIndex].text : 'Консультация';
-        $('doneWhen').textContent = whenHuman(WHEN, date, time);
+        $('doneWhen').textContent = whenHuman(WHEN, SELECTED_DATE, time);
         $('statusLink').href = API_BASE + '/t/' + res.d.token;
 
         hide($('formView'));
