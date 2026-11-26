@@ -4,4 +4,4 @@ Disallow: /forsaj/
 Disallow: /forsaj_info/
 Disallow: /forsaj_map/
 
-Sitemap: https://forsaj-mk.ru/sitemap.xml
+Sitemap: https://forsajmk.ru/sitemap.xml
