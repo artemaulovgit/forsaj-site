@@ -55,6 +55,23 @@
   .bk-field > label{display:block; font-size:13px; font-weight:600; color:var(--muted-strong); margin-bottom:8px}
   .bk-hint{font-size:12px; color:var(--muted); margin-top:6px; line-height:1.45}
 
+  /* карточка описания услуги */
+  .bk-svcdesc{
+    margin-top:10px; padding:13px 15px; border-radius:13px;
+    background:rgba(255,255,255,.035); border:1px solid var(--line);
+    font-size:13px; color:var(--muted-strong); line-height:1.55;
+  }
+
+  /* карточка контактов */
+  .bk-info{display:flex; flex-direction:column; gap:11px}
+  .bk-info__row{display:flex; justify-content:space-between; gap:16px; font-size:14px; line-height:1.4}
+  .bk-info__row > span{color:var(--muted); flex-shrink:0}
+  .bk-info__row > b{font-weight:600; text-align:right}
+  .bk-info__row a{color:#fff; text-decoration:none; font-weight:600}
+  .bk-info__row a:hover{color:var(--red-bright)}
+  .bk-info__actions{display:flex; gap:9px; margin-top:4px}
+  .bk-info__actions .bk-btn{flex:1; min-height:48px; font-size:14px; padding:12px 10px}
+
   input[type=text],input[type=tel],select,textarea{
     width:100%; font:inherit; font-size:16px; color:var(--text);
     background:var(--bg-soft); border:1px solid var(--line);
@@ -202,6 +219,7 @@
           <option value="">Не знаю — нужна консультация</option>
         </select>
         <div class="bk-hint" id="serviceHint"></div>
+        <div class="bk-svcdesc bk-hidden" id="serviceDesc"></div>
       </div>
 
       <div class="bk-field">
@@ -273,6 +291,9 @@
     <div style="margin-top:20px">
       <a class="bk-btn bk-btn--ghost" id="statusLink" href="#">Посмотреть статус заявки</a>
     </div>
+    <div style="margin-top:9px">
+      <a class="bk-btn bk-btn--ghost" href="https://yandex.ru/maps/?text=%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0%2C%20%D0%91%D0%B5%D1%80%D1%91%D0%B7%D0%BE%D0%B2%D0%B0%D1%8F%20%D0%B0%D0%BB%D0%BB%D0%B5%D1%8F%2C%204" target="_blank" rel="noopener">Как добраться</a>
+    </div>
   </div>
 
   <!-- ОШИБКА ЗАГРУЗКИ -->
@@ -281,6 +302,17 @@
     <h1 style="font-size:22px">Не удалось загрузить запись</h1>
     <p class="bk-sub">Позвоните — запишем вручную за пару минут.</p>
     <a class="bk-btn" href="tel:+79773787324">Позвонить +7 977 378-73-24</a>
+  </div>
+
+  <!-- КОНТАКТЫ -->
+  <div class="bk-card bk-info">
+    <div class="bk-info__row"><span>Адрес</span><b>Москва, Берёзовая аллея, 4</b></div>
+    <div class="bk-info__row"><span>Часы работы</span><b id="infoHours">ежедневно 10:00–22:00</b></div>
+    <div class="bk-info__row"><span>Телефон</span><a href="tel:+79773787324">+7 977 378-73-24</a></div>
+    <div class="bk-info__actions">
+      <a class="bk-btn bk-btn--ghost" href="https://yandex.ru/maps/?text=%D0%9C%D0%BE%D1%81%D0%BA%D0%B2%D0%B0%2C%20%D0%91%D0%B5%D1%80%D1%91%D0%B7%D0%BE%D0%B2%D0%B0%D1%8F%20%D0%B0%D0%BB%D0%BB%D0%B5%D1%8F%2C%204" target="_blank" rel="noopener">Маршрут</a>
+      <a class="bk-btn bk-btn--ghost" href="https://wa.me/79773787324" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
   </div>
 
 </main>
@@ -301,7 +333,7 @@
    1) Локальный предпросмотр — определится сам.
    2) Публичный сайт — впиши HTTPS-адрес сервера в PUBLIC_API.
    ============================================================ */
-var PUBLIC_API = 'https://tier-director-development-islamic.trycloudflare.com';
+var PUBLIC_API = 'https://refresh-district-eclipse-tech.trycloudflare.com';
 
 var API_BASE = (function () {
   var h = location.hostname;
@@ -438,9 +470,17 @@ var API_BASE = (function () {
   }
 
   /* ---------------- дата и время ---------------- */
-  function hasSlotsOn(iso) {
-    if (iso > todayStr()) return true;
-    return nowMin() + LEAD_MIN <= lastSlotMin();
+  var AVAIL = {};
+
+  function apiUrl(path, params) {
+    var parts = [];
+    Object.keys(params).forEach(function (k) {
+      var v = params[k];
+      if (v !== '' && v !== null && v !== undefined) {
+        parts.push(encodeURIComponent(k) + '=' + encodeURIComponent(v));
+      }
+    });
+    return API_BASE + path + (parts.length ? '?' + parts.join('&') : '');
   }
 
   function dayChipHtml(iso) {
@@ -453,80 +493,101 @@ var API_BASE = (function () {
     return { big: p[2], small: label };
   }
 
+  async function refreshAvailability() {
+    var serviceId = $('service').value || '';
+    try {
+      var r = await fetch(apiUrl('/api/public/availability', { days: DAYS_AHEAD, service_id: serviceId }), { cache: 'no-store' });
+      if (!r.ok) throw new Error('bad');
+      var data = await r.json();
+      AVAIL = {};
+      (data.days || []).forEach(function (d) { AVAIL[d.date] = d.free; });
+      buildDays();
+    } catch (e) {
+      $('whenHint').textContent = 'Не удалось загрузить расписание. Обновите страницу.';
+    }
+  }
+
   function buildDays() {
     var box = $('days');
     box.innerHTML = '';
+    var keep = SELECTED_DATE;
     SELECTED_DATE = null;
+    var firstOk = null;
 
     for (var i = 0; i < DAYS_AHEAD; i++) {
       var iso = shiftDate(todayStr(), i);
-      var ok = hasSlotsOn(iso);
+      var free = AVAIL[iso] || 0;
       var chip = dayChipHtml(iso);
 
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'bk-day';
       btn.dataset.date = iso;
-      btn.disabled = !ok;
+      btn.disabled = free <= 0;
       btn.innerHTML = '<b>' + chip.big + '</b><small>' + chip.small + '</small>';
-
-      if (ok && !SELECTED_DATE) {
-        btn.classList.add('is-on');
-        SELECTED_DATE = iso;
-      }
-
       btn.addEventListener('click', onDayClick);
       box.appendChild(btn);
+
+      if (free > 0 && !firstOk) firstOk = iso;
     }
 
-    if (SELECTED_DATE) {
-      buildTimes(SELECTED_DATE);
-      var act = box.querySelector('.bk-day.is-on');
-      if (act) act.scrollIntoView({ block: 'nearest', inline: 'center' });
+    var target = (keep && AVAIL[keep] > 0) ? keep : firstOk;
+    if (target) {
+      selectDay(target);
     } else {
       $('time').innerHTML = '<option value="">Нет свободных дней</option>';
       $('time').disabled = true;
-      $('whenHint').textContent = 'Позвоните — подберём время вручную.';
+      $('whenHint').textContent = 'Свободных дней нет. Позвоните — подберём время вручную.';
     }
+  }
+
+  function selectDay(iso) {
+    SELECTED_DATE = iso;
+    var all = $('days').querySelectorAll('.bk-day');
+    for (var i = 0; i < all.length; i++) {
+      all[i].classList.toggle('is-on', all[i].dataset.date === iso);
+    }
+    var act = $('days').querySelector('.bk-day.is-on');
+    if (act) act.scrollIntoView({ block: 'nearest', inline: 'center' });
+    loadSlots(iso);
   }
 
   function onDayClick(e) {
     var btn = e.currentTarget;
     if (btn.disabled) return;
-    var all = $('days').querySelectorAll('.bk-day');
-    for (var i = 0; i < all.length; i++) all[i].classList.remove('is-on');
-    btn.classList.add('is-on');
-    SELECTED_DATE = btn.dataset.date;
-    buildTimes(SELECTED_DATE);
+    selectDay(btn.dataset.date);
   }
 
-  function buildTimes(iso) {
+  async function loadSlots(iso) {
     var sel = $('time');
-    sel.innerHTML = '';
+    sel.innerHTML = '<option value="">Загружаем…</option>';
+    sel.disabled = true;
 
-    var isToday = iso === todayStr();
-    var earliest = isToday ? nowMin() + LEAD_MIN : -1;
-    var count = 0;
+    try {
+      var r = await fetch(apiUrl('/api/public/slots', { date: iso, service_id: $('service').value || '' }), { cache: 'no-store' });
+      if (!r.ok) throw new Error('bad');
+      var data = await r.json();
 
-    for (var t = toMin(WORK.opens); t <= lastSlotMin(); t += STEP) {
-      if (t < earliest) continue;
-      var o = document.createElement('option');
-      o.value = fromMin(t);
-      o.textContent = fromMin(t);
-      sel.appendChild(o);
-      count++;
+      sel.innerHTML = '';
+      if (!data.slots || !data.slots.length) {
+        sel.innerHTML = '<option value="">Нет свободного времени</option>';
+        $('whenHint').textContent = 'На этот день всё занято. Выберите другой.';
+        return;
+      }
+
+      data.slots.forEach(function (t) {
+        var o = document.createElement('option');
+        o.value = t;
+        o.textContent = t;
+        sel.appendChild(o);
+      });
+      sel.disabled = false;
+      $('whenHint').textContent = 'Работаем ' + WORK.opens + '–' + WORK.closes +
+        '. Показаны только свободные часы.';
+    } catch (e) {
+      sel.innerHTML = '<option value="">Ошибка загрузки</option>';
+      $('whenHint').textContent = 'Не удалось загрузить время. Обновите страницу.';
     }
-
-    if (!count) {
-      sel.innerHTML = '<option value="">Нет времени</option>';
-      sel.disabled = true;
-      $('whenHint').textContent = 'На этот день мест не осталось. Выберите другой.';
-      return;
-    }
-
-    sel.disabled = false;
-    $('whenHint').textContent = 'Мы работаем ' + WORK.opens + '–' + WORK.closes +
-      '. Запись возможна не раньше чем за час.';
   }
 
   /* ---------------- марки ---------------- */
@@ -599,6 +660,9 @@ var API_BASE = (function () {
           WORK.closes = data.tenant.work_closes;
         }
         $('footHours').textContent = WORK.opens + '–' + WORK.closes;
+        if ($('infoHours')) {
+          $('infoHours').textContent = 'ежедневно ' + WORK.opens + '–' + WORK.closes;
+        }
 
         var select = $('service');
         var groups = {}, order = [];
@@ -633,11 +697,27 @@ var API_BASE = (function () {
     var id = $('service').value;
     var s = SERVICES.filter(function (x) { return x.id === id; })[0];
     var hint = $('serviceHint');
-    if (!s) { hint.textContent = ''; return; }
+    var desc = $('serviceDesc');
+
+    if (!s) {
+      hint.textContent = '';
+      desc.textContent = '';
+      desc.classList.add('bk-hidden');
+      return;
+    }
+
     var parts = [];
     if (s.duration_min) parts.push('≈' + fmtDuration(s.duration_min));
     parts.push(s.price_from ? 'от ' + s.price_from.toLocaleString('ru-RU') + ' ₽' : 'цена после диагностики');
     hint.textContent = parts.join(' · ');
+
+    if (s.description) {
+      desc.textContent = s.description;
+      desc.classList.remove('bk-hidden');
+    } else {
+      desc.textContent = '';
+      desc.classList.add('bk-hidden');
+    }
   }
 
   /* ---------------- события ---------------- */
@@ -652,13 +732,16 @@ var API_BASE = (function () {
     var byDate = (WHEN === 'date');
     $('dateWrap').classList.toggle('bk-hidden', !byDate);
     if (byDate) {
-      if (!SELECTED_DATE) buildDays();
+      refreshAvailability();
       $('time').focus();
     }
   });
 
   $('make').addEventListener('change', syncModels);
-  $('service').addEventListener('change', updateHint);
+  $('service').addEventListener('change', function () {
+    updateHint();
+    if (!$('dateWrap').classList.contains('bk-hidden')) refreshAvailability();
+  });
 
   $('phone').addEventListener('input', function () {
     var before = this.value;
